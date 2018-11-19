@@ -63,103 +63,109 @@ class CalculatorInterface extends JFrame {
         panel.add(buttonEqually);
     }
 
-    private int FirstNumber = 0;
+    private double FirstNumber = 0;
+    private double SecondNumber = 0;
     private String operation;
 
     //описываем что делает каждая кнопка
     public void ActionButton() {
 
+        display.setText("0");
+
         button0.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                display.setText(display.getText() + "0");
+
+                display.setText("");display.setText(display.getText() + "0");
             }
         });
 
         button1.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                display.setText(display.getText() + "1");
+                display.setText(""); display.setText(display.getText() + "1");
             }
         });
 
         button2.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                display.setText(display.getText() + "2");
+                display.setText(""); display.setText(display.getText() + "2");
             }
         });
 
         button3.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                display.setText(display.getText() + "3");
+                display.setText(""); display.setText(display.getText() + "3");
             }
         });
 
         button4.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                display.setText(display.getText() + "4");
+                display.setText(""); display.setText(display.getText() + "4");
             }
         });
 
         button5.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                display.setText(display.getText() + "5");
+                display.setText(""); display.setText(display.getText() + "5");
             }
         });
 
         button6.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                display.setText(display.getText() + "6");
+                display.setText(""); display.setText(display.getText() + "6");
             }
         });
 
         button7.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                display.setText(display.getText() + "7");
+                display.setText(""); display.setText(display.getText() + "7");
             }
         });
 
         button8.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                display.setText(display.getText() + "8");
+                display.setText(""); display.setText(display.getText() + "8");
             }
         });
 
         button9.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                display.setText(display.getText() + "9");
+                display.setText(""); display.setText(display.getText() + "9");
             }
         });
 
         buttonAC.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String TextOnDisplay = display.getText();
-                display.setText(TextOnDisplay.substring(0, TextOnDisplay.length() - 1));
+                display.setText(TextOnDisplay.substring(0, TextOnDisplay.length() - TextOnDisplay.length()));
+                display.setText("0");
             }
         });
 
         buttonSum.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                FirstNumber = Integer.valueOf(display.getText());
+                FirstNumber = Double.valueOf(display.getText());
                 display.setText("");
                 operation = "+";
             }
         });
         buttonMyltiply.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                FirstNumber = Integer.valueOf(display.getText());
+                FirstNumber = Double.valueOf(display.getText());
                 display.setText("");
                 operation = "*";
             }
         });
         buttonSubtract.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                FirstNumber = Integer.valueOf(display.getText());
+                FirstNumber = Double.valueOf(display.getText());
                 display.setText("");
                 operation = "-";
+
             }
         });
         buttonShare.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                FirstNumber = Integer.valueOf(display.getText());
+                FirstNumber = Double.valueOf(display.getText());
                 display.setText("");
                 operation = "/";
             }
@@ -168,7 +174,7 @@ class CalculatorInterface extends JFrame {
         buttonEqually.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
 
-                int SecondNumber = Integer.valueOf(display.getText());
+                SecondNumber = Double.valueOf(display.getText());
 
                 if ("+".equals(operation))
                     display.setText((FirstNumber + SecondNumber) + "");
