@@ -1,20 +1,11 @@
-import javax.swing.*;
+﻿import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
-public class Calculator {
+class Calculator extends JFrame {
 
-    public static void main(String[] args) {
-        CalculatorInterface calcInt = new CalculatorInterface();
-        calcInt.PanelEditor();
-        calcInt.ActionButton();
-    }
-}
-
-class CalculatorInterface extends JFrame {
-
-    //создаем панель с дисплеем и кнопки
     private JTextArea display = new JTextArea(2, 1);
     private JPanel panel = new JPanel(new GridLayout(4, 4));
     private JButton button0 = new JButton("0");
@@ -34,14 +25,29 @@ class CalculatorInterface extends JFrame {
     private JButton buttonAC = new JButton("C");
     private JButton buttonEqually = new JButton("=");
 
-    //редактируем панель
-    public void PanelEditor() {
+    ArrayList<String> cacheList1 =  new ArrayList<String>();
+    ArrayList<String> cacheList2 =  new ArrayList<String>();
+    int cache1size;
+    private String cache;
+    private Double result;
+    boolean emplyCache1;
+    private String resultInCache;
+
+
+    protected Double FirstNumber;
+    protected Double SecondNumber;
+    protected String operation = "+";
+
+
+
+    public Calculator() {
 
         setLayout(new BorderLayout()); //для расположения кнопок
         setLocationRelativeTo(null);
         setResizable(false);
         setSize(200, 250);
         setVisible(true);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         add(display, BorderLayout.NORTH);
         add(panel, BorderLayout.CENTER);
@@ -61,86 +67,63 @@ class CalculatorInterface extends JFrame {
         panel.add(buttonSum);
         panel.add(buttonSubtract);
         panel.add(buttonEqually);
-    }
-
-    private double FirstNumber = 0;
-    private double SecondNumber = 0;
-    private String operation;
-
-    //описываем что делает каждая кнопка
-    public void ActionButton() {
-
-        display.setText("0");
 
         button0.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-
-                display.setText("");display.setText(display.getText() + "0");
+                display.setText(display.getText() + "0");
             }
         });
-
         button1.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                display.setText(""); display.setText(display.getText() + "1");
+                display.setText(display.getText() + "1");
             }
         });
-
         button2.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                display.setText(""); display.setText(display.getText() + "2");
+                display.setText(display.getText() + "2");
             }
         });
-
         button3.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                display.setText(""); display.setText(display.getText() + "3");
+                display.setText(display.getText() + "3");
             }
         });
-
         button4.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                display.setText(""); display.setText(display.getText() + "4");
+                display.setText(display.getText() + "4");
             }
         });
-
         button5.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                display.setText(""); display.setText(display.getText() + "5");
+                display.setText(display.getText() + "5");
             }
         });
-
         button6.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                display.setText(""); display.setText(display.getText() + "6");
+                display.setText(display.getText() + "6");
             }
         });
-
         button7.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                display.setText(""); display.setText(display.getText() + "7");
+                display.setText(display.getText() + "7");
             }
         });
-
         button8.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                display.setText(""); display.setText(display.getText() + "8");
+                display.setText(display.getText() + "8");
             }
         });
-
         button9.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                display.setText(""); display.setText(display.getText() + "9");
+                display.setText(display.getText() + "9");
             }
         });
-
         buttonAC.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String TextOnDisplay = display.getText();
-                display.setText(TextOnDisplay.substring(0, TextOnDisplay.length() - TextOnDisplay.length()));
-                display.setText("0");
+                display.setText(TextOnDisplay.substring(0, 0));
             }
         });
-
         buttonSum.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 FirstNumber = Double.valueOf(display.getText());
@@ -160,7 +143,6 @@ class CalculatorInterface extends JFrame {
                 FirstNumber = Double.valueOf(display.getText());
                 display.setText("");
                 operation = "-";
-
             }
         });
         buttonShare.addActionListener(new ActionListener() {
@@ -171,26 +153,125 @@ class CalculatorInterface extends JFrame {
             }
         });
 
+
         buttonEqually.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-
                 SecondNumber = Double.valueOf(display.getText());
 
-                if ("+".equals(operation))
-                    display.setText((FirstNumber + SecondNumber) + "");
+                emplyCache1 = cacheList1.isEmpty();
 
-                if ("-".equals(operation))
-                    display.setText((FirstNumber - SecondNumber) + "");
+                if ("+".equals(operation))
+                {
+                    if(emplyCache1 == true)
+                    {
+                        result = FirstNumber + SecondNumber;
+                        AddCacheList();
+                        display.setText((result) + "");
+                    }
+                    else
+                    {
+                        //ищем результат в кеше
+                        SearchResultInCache();
+
+                        //если нашли
+                        if(result.equals(Double.valueOf(resultInCache)))
+                            display.setText(resultInCache);
+
+                        //если не нашли
+                        else
+                        {
+                            result = FirstNumber + SecondNumber;
+                            AddCacheList();
+                            display.setText((result) + "");
+                        }
+                    }
+
+                    //Вывод кеша на экран для проверки
+                    for(String n : cacheList1)
+                    {
+                        System.out.println("L1 " + n);
+                    }
+
+                    for(String n : cacheList2)
+                    {
+                        System.out.println("L2 " + n);
+                    }
+                }
+
+                if ("-".equals(operation)){
+                    cache1size = cacheList1.size();
+
+                    result = FirstNumber - SecondNumber;
+                    AddCacheList();
+                    display.setText((result) + "");
+                }
+
 
                 if ("*".equals(operation))
-                    display.setText((FirstNumber * SecondNumber) + "");
+                {
 
-                if ("/".equals(operation))
-                    display.setText((FirstNumber / SecondNumber) + "");
+
+                    result = FirstNumber * SecondNumber;
+                   AddCacheList();
+                    display.setText((result) + "");
+                }
+
+                if ("/".equals(operation)) {
+                    if (SecondNumber != 0)
+                    {
+                        result = FirstNumber / SecondNumber;
+                        AddCacheList();
+                        display.setText((result) + "");
+                    }
+                    else
+                        display.setText("Ошибка! Нельзя делить на 0!");
+                }
             }
         });
     }
+
+    protected void AddCacheList()
+    {
+
+        cache1size = cacheList1.size();
+        String i0 = String.valueOf(FirstNumber),i1 = String.valueOf(SecondNumber),i2 = operation, i3 = String.valueOf(result);
+        cache = i0 + "|" + i1 + "|" + i2 + "|" + i3;
+
+        if(cache1size == 10)
+        {
+            String i = cacheList1.get(0);
+            cacheList2.add(i);
+            cacheList1.remove(0);
+            cacheList1.add(cache);
+        }
+
+        else
+            cacheList1.add(cache);
+
+        i0="";i1="";i2="";i3="";cache="";
+    }
+
+
+
+    protected void SearchResultInCache() {
+        result = 0.0;
+        String check[];
+        String delitel = "|";
+        String i0="", i1="", i2="";
+        resultInCache="";
+        for (String n : cacheList1)
+        {
+            check = n.split(delitel);
+            i0 = check[0];
+            i1 = check[1];
+            i2 = check[2];
+            resultInCache = check[3];
+
+            if (Double.valueOf(i0).equals(FirstNumber) && Double.valueOf(i1).equals(SecondNumber) && i2.equals(operation))
+            {
+                result = Double.valueOf(resultInCache);
+                break;
+            }
+        }
+    }
 }
-
-
-
