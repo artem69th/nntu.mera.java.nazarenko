@@ -1,10 +1,17 @@
-﻿import javax.swing.*;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
-class Calculator extends JFrame {
+class Calculator extends JFrame implements Serializable {
 
     private JTextArea display = new JTextArea(2, 1);
     private JPanel panel = new JPanel(new GridLayout(4, 4));
@@ -24,23 +31,22 @@ class Calculator extends JFrame {
     private JButton buttonSubtract = new JButton("-");
     private JButton buttonAC = new JButton("C");
     private JButton buttonEqually = new JButton("=");
-
-    ArrayList<String> cacheList1 =  new ArrayList<String>();
-    ArrayList<String> cacheList2 =  new ArrayList<String>();
-    int cache1size;
+    private ArrayList<String> cacheList1 = new ArrayList<String>();
+    private ArrayList<String> cacheList2 = new ArrayList<String>();
+    private int cacheSize;
     private String cache;
     private Double result;
-    boolean emplyCache1;
-    private String resultInCache;
+    private boolean emplyCache1, emplyCache2;
+    protected Double FirstNumber, SecondNumber;
+    protected String operation;
+    private static Socket socketToServer;
+    private static Gate g = null;
+    private static ObjectOutputStream out = null;
+    private static ObjectInputStream in = null;
 
 
-    protected Double FirstNumber;
-    protected Double SecondNumber;
-    protected String operation = "+";
 
-
-
-    public Calculator() {
+    public Calculator(){
 
         setLayout(new BorderLayout()); //для расположения кнопок
         setLocationRelativeTo(null);
@@ -157,121 +163,145 @@ class Calculator extends JFrame {
         buttonEqually.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 SecondNumber = Double.valueOf(display.getText());
-
                 emplyCache1 = cacheList1.isEmpty();
-
-                if ("+".equals(operation))
-                {
-                    if(emplyCache1 == true)
-                    {
-                        result = FirstNumber + SecondNumber;
-                        AddCacheList();
-                        display.setText((result) + "");
-                    }
-                    else
-                    {
-                        //ищем результат в кеше
-                        SearchResultInCache();
-
-                        //если нашли
-                        if(result.equals(Double.valueOf(resultInCache)))
-                            display.setText(resultInCache);
-
-                        //если не нашли
-                        else
-                        {
-                            result = FirstNumber + SecondNumber;
-                            AddCacheList();
-                            display.setText((result) + "");
-                        }
-                    }
-
-                    //Вывод кеша на экран для проверки
-                    for(String n : cacheList1)
-                    {
-                        System.out.println("L1 " + n);
-                    }
-
-                    for(String n : cacheList2)
-                    {
-                        System.out.println("L2 " + n);
-                    }
-                }
-
-                if ("-".equals(operation)){
-                    cache1size = cacheList1.size();
-
-                    result = FirstNumber - SecondNumber;
-                    AddCacheList();
-                    display.setText((result) + "");
-                }
-
-
-                if ("*".equals(operation))
-                {
-
-
-                    result = FirstNumber * SecondNumber;
-                   AddCacheList();
-                    display.setText((result) + "");
-                }
-
-                if ("/".equals(operation)) {
-                    if (SecondNumber != 0)
-                    {
-                        result = FirstNumber / SecondNumber;
-                        AddCacheList();
-                        display.setText((result) + "");
-                    }
-                    else
-                        display.setText("Ошибка! Нельзя делить на 0!");
-                }
+                emplyCache2 = cacheList2.isEmpty();
+                EnterOperation(operation);
             }
         });
     }
 
-    protected void AddCacheList()
+    private void EnterOperation(String operation)
     {
 
-        cache1size = cacheList1.size();
-        String i0 = String.valueOf(FirstNumber),i1 = String.valueOf(SecondNumber),i2 = operation, i3 = String.valueOf(result);
-        cache = i0 + "|" + i1 + "|" + i2 + "|" + i3;
+        //TextMessage tm = new TextMessage();
+        //если первый кеш пуст, то добавляем в него
+        if (emplyCache1 == true)
+        {TextMessage tm = new TextMessage();
+           try {
+               socketToServer = new Socket("127.0.0.1", 11111);
+               tm.setUserName(g.loginText);
+               tm.setFirstValue(FirstNumber);
+               tm.setSecondValue(SecondNumber);
+               tm.setOperation(operation);
+               out = new ObjectOutputStream(socketToServer.getOutputStream());
+               out.writeObject(tm);
+           }catch (Exception e){
+               System.out.println("Error0");
+           }
+           /*try {
+               Thread.sleep(1000);
+           }catch (InterruptedException e) {
+               e.printStackTrace();
+           }*/
 
-        if(cache1size == 10)
+            try{
+               in = new ObjectInputStream(socketToServer.getInputStream());
+               tm = (TextMessage) in.readObject();
+               result = tm.getResult();
+           } catch (Exception e) { System.out.println("Error1!"); }
+
+            AddCacheList();
+            display.setText((result) + "");
+        }
+
+        //если в первом кеше есть элементы
+        else {
+            //ищем результат в кеше
+            SearchResultInCache1(cacheList1);
+            //если нашли
+            if (SearchResultInCache1(cacheList1) == true)
+                display.setText((result)+ "");
+
+            //если не нашли
+            else
+            {
+                //то проверяем, есть ли элементы во втором кеше
+                //если нет, то добавляем в кеш
+                if(emplyCache2 == true) {
+                    try {
+                        TextMessage tm = new TextMessage();
+                        socketToServer = new Socket("127.0.0.1", 11111);
+                        tm.setUserName(g.loginText);
+                        tm.setFirstValue(FirstNumber);
+                        tm.setSecondValue(SecondNumber);
+                        tm.setOperation(operation);
+                        out = new ObjectOutputStream(socketToServer.getOutputStream());
+                        out.writeObject(tm);
+                        in = new ObjectInputStream(socketToServer.getInputStream());
+                        tm = (TextMessage)in.readObject();
+                        result = tm.getResult();
+                    } catch (Exception e) { System.out.println("Error2!"); }
+
+                    AddCacheList();
+                    display.setText((result) + "");
+                }
+                //если есть, ищем во вотором кеше
+                else
+                {
+                    SearchResultInCache1(cacheList2);
+                    //если нашли
+                    if(SearchResultInCache1(cacheList2) == true)
+                        display.setText((result)+ "");
+
+                    //если не нашли
+                    else {
+                        try {
+                            TextMessage tm = new TextMessage();
+                            socketToServer = new Socket("127.0.0.1", 11111);
+                            tm.setUserName(g.loginText);
+                            tm.setFirstValue(FirstNumber);
+                            tm.setSecondValue(SecondNumber);
+                            tm.setOperation(operation);
+                            out = new ObjectOutputStream(socketToServer.getOutputStream());
+                            out.writeObject(tm);
+                            in = new ObjectInputStream(socketToServer.getInputStream());
+                            tm = (TextMessage) in.readObject();
+                            result = tm.getResult();
+                        } catch (Exception e) { System.out.println("Error3!"); }
+
+                        AddCacheList();
+                        display.setText((result) + "");
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean SearchResultInCache1(ArrayList<String> cacheList) {
+        cacheSize = cacheList.size();
+        String first="", second="",res="", op="";
+        for(int i=0; i<cacheSize; i++)
         {
+            String m = cacheList.get(i);
+            String expression[] = m.split("\\s");
+            first = expression[0]; second = expression[1]; op = expression[2]; res = expression[3];
+            if(Double.valueOf(first).equals(FirstNumber) && Double.valueOf(second).equals(SecondNumber) && op.equals(operation)){
+                result = Double.valueOf(res);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void AddCacheList() {
+        cacheSize = cacheList1.size();
+        String i0 = String.valueOf(FirstNumber), i1 = String.valueOf(SecondNumber), i2 = operation, i3 = String.valueOf(result);
+        cache = i0 + " " + i1 + " " + i2 + " " + i3;
+
+        if (cacheSize == 10) {
             String i = cacheList1.get(0);
             cacheList2.add(i);
             cacheList1.remove(0);
             cacheList1.add(cache);
-        }
-
-        else
+        } else
             cacheList1.add(cache);
 
-        i0="";i1="";i2="";i3="";cache="";
-    }
-
-
-
-    protected void SearchResultInCache() {
-        result = 0.0;
-        String check[];
-        String delitel = "|";
-        String i0="", i1="", i2="";
-        resultInCache="";
-        for (String n : cacheList1)
-        {
-            check = n.split(delitel);
-            i0 = check[0];
-            i1 = check[1];
-            i2 = check[2];
-            resultInCache = check[3];
-
-            if (Double.valueOf(i0).equals(FirstNumber) && Double.valueOf(i1).equals(SecondNumber) && i2.equals(operation))
-            {
-                result = Double.valueOf(resultInCache);
-                break;
-            }
-        }
+        i0 = "";
+        i1 = "";
+        i2 = "";
+        i3 = "";
+        cache = "";
     }
 }
+
+
