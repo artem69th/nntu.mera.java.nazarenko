@@ -2,14 +2,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.net.ServerSocket;
+
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 
 class Calculator extends JFrame implements Serializable {
 
@@ -39,12 +37,8 @@ class Calculator extends JFrame implements Serializable {
     private boolean emplyCache1, emplyCache2;
     protected Double FirstNumber, SecondNumber;
     protected String operation;
-    private static Socket socketToServer;
+    Socket socketToServer = null;
     private static Gate g = null;
-    private static ObjectOutputStream out = null;
-    private static ObjectInputStream in = null;
-
-
 
     public Calculator(){
 
@@ -73,6 +67,7 @@ class Calculator extends JFrame implements Serializable {
         panel.add(buttonSum);
         panel.add(buttonSubtract);
         panel.add(buttonEqually);
+
 
         button0.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -172,30 +167,29 @@ class Calculator extends JFrame implements Serializable {
 
     private void EnterOperation(String operation)
     {
-
-        //TextMessage tm = new TextMessage();
         //если первый кеш пуст, то добавляем в него
         if (emplyCache1 == true)
-        {TextMessage tm = new TextMessage();
+        {
+           TextMessage tm = new TextMessage();
            try {
                socketToServer = new Socket("127.0.0.1", 11111);
                tm.setUserName(g.loginText);
                tm.setFirstValue(FirstNumber);
                tm.setSecondValue(SecondNumber);
                tm.setOperation(operation);
-               out = new ObjectOutputStream(socketToServer.getOutputStream());
+               ObjectOutputStream out = new ObjectOutputStream(socketToServer.getOutputStream());
                out.writeObject(tm);
            }catch (Exception e){
                System.out.println("Error0");
            }
-           /*try {
-               Thread.sleep(1000);
-           }catch (InterruptedException e) {
-               e.printStackTrace();
-           }*/
+            try {
+                Thread.sleep(500);
+            }catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
             try{
-               in = new ObjectInputStream(socketToServer.getInputStream());
+               ObjectInputStream in = new ObjectInputStream(socketToServer.getInputStream());
                tm = (TextMessage) in.readObject();
                result = tm.getResult();
            } catch (Exception e) { System.out.println("Error1!"); }
@@ -218,19 +212,29 @@ class Calculator extends JFrame implements Serializable {
                 //то проверяем, есть ли элементы во втором кеше
                 //если нет, то добавляем в кеш
                 if(emplyCache2 == true) {
+                    TextMessage tm = new TextMessage();
                     try {
-                        TextMessage tm = new TextMessage();
                         socketToServer = new Socket("127.0.0.1", 11111);
                         tm.setUserName(g.loginText);
                         tm.setFirstValue(FirstNumber);
                         tm.setSecondValue(SecondNumber);
                         tm.setOperation(operation);
-                        out = new ObjectOutputStream(socketToServer.getOutputStream());
+                        ObjectOutputStream out = new ObjectOutputStream(socketToServer.getOutputStream());
                         out.writeObject(tm);
-                        in = new ObjectInputStream(socketToServer.getInputStream());
-                        tm = (TextMessage)in.readObject();
+                    }catch (Exception e){
+                        System.out.println("Error2");
+                    }
+                    try {
+                        Thread.sleep(1000);
+                    }catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    try{
+                        ObjectInputStream in = new ObjectInputStream(socketToServer.getInputStream());
+                        tm = (TextMessage) in.readObject();
                         result = tm.getResult();
-                    } catch (Exception e) { System.out.println("Error2!"); }
+                    } catch (Exception e) { System.out.println("Error3!"); }
 
                     AddCacheList();
                     display.setText((result) + "");
@@ -245,19 +249,29 @@ class Calculator extends JFrame implements Serializable {
 
                     //если не нашли
                     else {
+                        TextMessage tm = new TextMessage();
                         try {
-                            TextMessage tm = new TextMessage();
                             socketToServer = new Socket("127.0.0.1", 11111);
                             tm.setUserName(g.loginText);
                             tm.setFirstValue(FirstNumber);
                             tm.setSecondValue(SecondNumber);
                             tm.setOperation(operation);
-                            out = new ObjectOutputStream(socketToServer.getOutputStream());
+                            ObjectOutputStream out = new ObjectOutputStream(socketToServer.getOutputStream());
                             out.writeObject(tm);
-                            in = new ObjectInputStream(socketToServer.getInputStream());
+                        }catch (Exception e){
+                            System.out.println("Error4");
+                        }
+                        try {
+                            Thread.sleep(1000);
+                        }catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                        try{
+                            ObjectInputStream in = new ObjectInputStream(socketToServer.getInputStream());
                             tm = (TextMessage) in.readObject();
                             result = tm.getResult();
-                        } catch (Exception e) { System.out.println("Error3!"); }
+                        } catch (Exception e) { System.out.println("Error5!"); }
 
                         AddCacheList();
                         display.setText((result) + "");
@@ -303,5 +317,4 @@ class Calculator extends JFrame implements Serializable {
         cache = "";
     }
 }
-
 
